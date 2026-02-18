@@ -4,8 +4,8 @@ build-backend = "hatchling.build"
 
 [project]
 name = "clr-uptime-kuma-mcp"
-version = "1.0.0"
-description = "A read-only MCP server for Uptime Kuma"
+version = "1.1.0"
+description = "An MCP server for Uptime Kuma"
 requires-python = ">=3.11"
 license = "MIT"
 authors = [{name = "clearminds"}]
@@ -19,6 +19,7 @@ dependencies = [
     "fastmcp>=2.14.0,<3",
     "pydantic>=2.0",
     "pydantic-settings>=2.0",
+    "uptime-kuma-api>=1.2.0",
 ]
 
 [project.urls]

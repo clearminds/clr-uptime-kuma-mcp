@@ -8,7 +8,12 @@ from typing import Any
 from fastmcp import FastMCP
 
 from clr_uptime_kuma_mcp.config import Settings, configure_logging
-from clr_uptime_kuma_mcp.kuma_client import KumaClient
+from clr_uptime_kuma_mcp.kuma_client import (
+    MAINTENANCE_STRATEGY_MAP,
+    MONITOR_TYPE_MAP,
+    KumaClient,
+    KumaWriteClient,
+)
 
 
 def parse_cli_args() -> dict[str, Any]:
@@ -49,6 +54,17 @@ def parse_cli_args() -> dict[str, Any]:
 
 mcp = FastMCP("Uptime Kuma")
 client: KumaClient | None = None
+write_client: KumaWriteClient | None = None
+
+
+def _require_write_client() -> KumaWriteClient:
+    """Return the write client or raise if not configured."""
+    if write_client is None:
+        raise ValueError(
+            "Write operations require username/password. "
+            "Set UPTIME_KUMA_USERNAME/UPTIME_KUMA_PASSWORD or add to credentials.json"
+        )
+    return write_client
 
 
 # ---------------------------------------------------------------------------
@@ -164,13 +180,227 @@ def kuma_cert_expiry() -> list[dict[str, Any]]:
 
 
 # ---------------------------------------------------------------------------
+# Monitor Management (write)
+# ---------------------------------------------------------------------------
+
+
+@mcp.tool
+def kuma_add_monitor(
+    name: str,
+    type: str = "http",
+    url: str = "",
+    hostname: str = "",
+    port: int = 0,
+    interval: int = 60,
+    keyword: str = "",
+) -> dict[str, Any]:
+    """Add a new monitor.
+
+    Args:
+        name: Display name for the monitor.
+        type: Monitor type (http, ping, port, dns, keyword, docker, push, mqtt, group, mysql, postgres, redis, mongodb).
+        url: URL to monitor (for http/keyword types).
+        hostname: Hostname to monitor (for ping/port/dns types).
+        port: Port number (for port type).
+        interval: Check interval in seconds (default 60).
+        keyword: Keyword to search for (for keyword type).
+    """
+    wc = _require_write_client()
+    monitor_type = MONITOR_TYPE_MAP.get(type.lower())
+    if monitor_type is None:
+        raise ValueError(f"Unknown monitor type '{type}'. Valid: {', '.join(MONITOR_TYPE_MAP)}")
+
+    kwargs: dict[str, Any] = {"type": monitor_type, "name": name, "interval": interval}
+    if url:
+        kwargs["url"] = url
+    if hostname:
+        kwargs["hostname"] = hostname
+    if port:
+        kwargs["port"] = port
+    if keyword:
+        kwargs["keyword"] = keyword
+
+    return wc.add_monitor(**kwargs)
+
+
+@mcp.tool
+def kuma_edit_monitor(
+    monitor_id: int,
+    name: str = "",
+    url: str = "",
+    hostname: str = "",
+    port: int = 0,
+    interval: int = 0,
+    keyword: str = "",
+) -> dict[str, Any]:
+    """Edit an existing monitor. Only provided fields are updated.
+
+    Args:
+        monitor_id: ID of the monitor to edit.
+        name: New display name.
+        url: New URL.
+        hostname: New hostname.
+        port: New port.
+        interval: New check interval in seconds.
+        keyword: New keyword.
+    """
+    wc = _require_write_client()
+    kwargs: dict[str, Any] = {}
+    if name:
+        kwargs["name"] = name
+    if url:
+        kwargs["url"] = url
+    if hostname:
+        kwargs["hostname"] = hostname
+    if port:
+        kwargs["port"] = port
+    if interval:
+        kwargs["interval"] = interval
+    if keyword:
+        kwargs["keyword"] = keyword
+
+    if not kwargs:
+        raise ValueError("No fields to update")
+
+    return wc.edit_monitor(monitor_id, **kwargs)
+
+
+@mcp.tool
+def kuma_delete_monitor(monitor_id: int) -> dict[str, Any]:
+    """Delete a monitor.
+
+    Args:
+        monitor_id: ID of the monitor to delete.
+    """
+    wc = _require_write_client()
+    return wc.delete_monitor(monitor_id)
+
+
+# ---------------------------------------------------------------------------
+# Pause / Resume
+# ---------------------------------------------------------------------------
+
+
+@mcp.tool
+def kuma_pause_monitor(monitor_id: int) -> dict[str, Any]:
+    """Pause a monitor (stop checking).
+
+    Args:
+        monitor_id: ID of the monitor to pause.
+    """
+    wc = _require_write_client()
+    return wc.pause_monitor(monitor_id)
+
+
+@mcp.tool
+def kuma_resume_monitor(monitor_id: int) -> dict[str, Any]:
+    """Resume a paused monitor.
+
+    Args:
+        monitor_id: ID of the monitor to resume.
+    """
+    wc = _require_write_client()
+    return wc.resume_monitor(monitor_id)
+
+
+# ---------------------------------------------------------------------------
+# Maintenance Windows
+# ---------------------------------------------------------------------------
+
+
+@mcp.tool
+def kuma_list_maintenances() -> list[dict[str, Any]]:
+    """List all maintenance windows."""
+    wc = _require_write_client()
+    return wc.get_maintenances()
+
+
+@mcp.tool
+def kuma_add_maintenance(
+    title: str,
+    strategy: str = "manual",
+    description: str = "",
+    date_range: str = "",
+    duration_minutes: int = 60,
+    cron: str = "",
+    timezone: str = "",
+) -> dict[str, Any]:
+    """Add a maintenance window.
+
+    Args:
+        title: Maintenance window title.
+        strategy: Strategy type (manual, single, recurring-interval, recurring-weekday, recurring-day-of-month, cron).
+        description: Optional description.
+        date_range: For 'single' strategy: 'YYYY-MM-DD HH:MM,YYYY-MM-DD HH:MM'.
+        duration_minutes: Duration in minutes for cron strategy (default 60).
+        cron: Cron expression for 'cron' strategy.
+        timezone: Timezone (e.g. 'Europe/Stockholm').
+    """
+    wc = _require_write_client()
+    maint_strategy = MAINTENANCE_STRATEGY_MAP.get(strategy.lower())
+    if maint_strategy is None:
+        raise ValueError(f"Unknown strategy '{strategy}'. Valid: {', '.join(MAINTENANCE_STRATEGY_MAP)}")
+
+    kwargs: dict[str, Any] = {
+        "title": title,
+        "strategy": maint_strategy,
+        "description": description,
+    }
+    if date_range:
+        parts = [p.strip() for p in date_range.split(",")]
+        if len(parts) == 2:
+            kwargs["dateRange"] = parts
+    if duration_minutes != 60:
+        kwargs["durationMinutes"] = duration_minutes
+    if cron:
+        kwargs["cron"] = cron
+    if timezone:
+        kwargs["timezoneOption"] = timezone
+
+    return wc.add_maintenance(**kwargs)
+
+
+@mcp.tool
+def kuma_delete_maintenance(maintenance_id: int) -> dict[str, Any]:
+    """Delete a maintenance window.
+
+    Args:
+        maintenance_id: ID of the maintenance window to delete.
+    """
+    wc = _require_write_client()
+    return wc.delete_maintenance(maintenance_id)
+
+
+@mcp.tool
+def kuma_pause_maintenance(maintenance_id: int) -> dict[str, Any]:
+    """Pause a maintenance window.
+
+    Args:
+        maintenance_id: ID of the maintenance window to pause.
+    """
+    wc = _require_write_client()
+    return wc.pause_maintenance(maintenance_id)
+
+
+@mcp.tool
+def kuma_resume_maintenance(maintenance_id: int) -> dict[str, Any]:
+    """Resume a paused maintenance window.
+
+    Args:
+        maintenance_id: ID of the maintenance window to resume.
+    """
+    wc = _require_write_client()
+    return wc.resume_maintenance(maintenance_id)
+
+
+# ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 
 
 def main() -> None:
     """Main entry point for the Uptime Kuma MCP server."""
-    global client
+    global client, write_client
 
     cli_overlay = parse_cli_args()
 
@@ -183,20 +413,30 @@ def main() -> None:
     configure_logging(settings.log_level)
     logger = logging.getLogger(__name__)
 
+    creds = settings.load_credentials()
+
     logger.info("Starting Uptime Kuma MCP Server")
-    logger.info(
-        "Config: url=%s transport=%s", settings.uptime_kuma_url, settings.transport
-    )
+    logger.info("Config: url=%s transport=%s", creds.get("url", ""), settings.transport)
 
     try:
         client = KumaClient(
-            url=settings.uptime_kuma_url,
-            token=settings.uptime_kuma_token,
+            url=creds.get("url", ""),
+            token=creds.get("token", ""),
         )
-        logger.debug("Kuma client initialized")
+        logger.debug("Read client initialized (Prometheus metrics)")
     except Exception as e:
-        logger.error("Failed to initialize Kuma client: %s", e)
+        logger.error("Failed to initialize read client: %s", e)
         sys.exit(1)
+
+    if creds.get("username") and creds.get("password"):
+        write_client = KumaWriteClient(
+            url=creds["url"],
+            username=creds["username"],
+            password=creds["password"],
+        )
+        logger.info("Write client initialized (Socket.IO)")
+    else:
+        logger.info("Write client not initialized (no username/password)")
 
     try:
         if settings.transport == "stdio":

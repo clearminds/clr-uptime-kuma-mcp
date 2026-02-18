@@ -1,11 +1,17 @@
 # TODO
 
-## Monitor management
+## Completed
 
-- [ ] Add monitor (create new monitors)
-- [ ] Delete monitor
+- [x] Add monitor (create new monitors)
+- [x] Delete monitor
+- [x] Pause/resume monitor support
+- [x] Maintenance window support
 
-## Additional features
+## Future
 
-- [ ] Pause/resume monitor support
-- [ ] Maintenance window support
+- [ ] Edit maintenance window
+- [ ] Add monitors to maintenance window
+- [ ] Heartbeat history
+- [ ] Notification management
+- [ ] Status page management
+- [ ] Tag management

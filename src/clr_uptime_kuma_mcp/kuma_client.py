@@ -1,11 +1,13 @@
-"""Uptime Kuma client using the Prometheus metrics endpoint."""
+"""Uptime Kuma client using the Prometheus metrics endpoint and Socket.IO API."""
 
 import logging
 import re
 from collections import defaultdict
+from contextlib import contextmanager
 from typing import Any
 
 import httpx
+from uptime_kuma_api import MaintenanceStrategy, MonitorType, UptimeKumaApi
 
 logger = logging.getLogger(__name__)
 
@@ -77,3 +79,102 @@ class KumaClient:
         resp.raise_for_status()
         metrics = parse_prometheus_metrics(resp.text)
         return metrics.get(str(monitor_id))
+
+
+MONITOR_TYPE_MAP: dict[str, MonitorType] = {
+    "http": MonitorType.HTTP,
+    "ping": MonitorType.PING,
+    "port": MonitorType.PORT,
+    "dns": MonitorType.DNS,
+    "keyword": MonitorType.KEYWORD,
+    "docker": MonitorType.DOCKER,
+    "push": MonitorType.PUSH,
+    "mqtt": MonitorType.MQTT,
+    "group": MonitorType.GROUP,
+    "mysql": MonitorType.MYSQL,
+    "postgres": MonitorType.POSTGRES,
+    "redis": MonitorType.REDIS,
+    "mongodb": MonitorType.MONGODB,
+}
+
+MAINTENANCE_STRATEGY_MAP: dict[str, MaintenanceStrategy] = {
+    "manual": MaintenanceStrategy.MANUAL,
+    "single": MaintenanceStrategy.SINGLE,
+    "recurring-interval": MaintenanceStrategy.RECURRING_INTERVAL,
+    "recurring-weekday": MaintenanceStrategy.RECURRING_WEEKDAY,
+    "recurring-day-of-month": MaintenanceStrategy.RECURRING_DAY_OF_MONTH,
+    "cron": MaintenanceStrategy.CRON,
+}
+
+
+class KumaWriteClient:
+    """Uptime Kuma write client via Socket.IO (uptime-kuma-api)."""
+
+    def __init__(self, url: str, username: str, password: str) -> None:
+        self.url = url.rstrip("/")
+        self.username = username
+        self.password = password
+
+    @contextmanager
+    def _connect(self):
+        """Create a fresh API connection, yield it, then disconnect."""
+        api = UptimeKumaApi(self.url)
+        try:
+            api.login(self.username, self.password)
+            yield api
+        finally:
+            api.disconnect()
+
+    # -- Monitor CRUD --
+
+    def add_monitor(self, **kwargs) -> dict[str, Any]:
+        """Add a new monitor."""
+        with self._connect() as api:
+            return api.add_monitor(**kwargs)
+
+    def edit_monitor(self, monitor_id: int, **kwargs) -> dict[str, Any]:
+        """Edit an existing monitor."""
+        with self._connect() as api:
+            return api.edit_monitor(monitor_id, **kwargs)
+
+    def delete_monitor(self, monitor_id: int) -> dict[str, Any]:
+        """Delete a monitor."""
+        with self._connect() as api:
+            return api.delete_monitor(monitor_id)
+
+    def pause_monitor(self, monitor_id: int) -> dict[str, Any]:
+        """Pause a monitor."""
+        with self._connect() as api:
+            return api.pause_monitor(monitor_id)
+
+    def resume_monitor(self, monitor_id: int) -> dict[str, Any]:
+        """Resume a paused monitor."""
+        with self._connect() as api:
+            return api.resume_monitor(monitor_id)
+
+    # -- Maintenance --
+
+    def get_maintenances(self) -> list[dict[str, Any]]:
+        """List all maintenance windows."""
+        with self._connect() as api:
+            return api.get_maintenances()
+
+    def add_maintenance(self, **kwargs) -> dict[str, Any]:
+        """Add a maintenance window."""
+        with self._connect() as api:
+            return api.add_maintenance(**kwargs)
+
+    def delete_maintenance(self, maintenance_id: int) -> dict[str, Any]:
+        """Delete a maintenance window."""
+        with self._connect() as api:
+            return api.delete_maintenance(maintenance_id)
+
+    def pause_maintenance(self, maintenance_id: int) -> dict[str, Any]:
+        """Pause a maintenance window."""
+        with self._connect() as api:
+            return api.pause_maintenance(maintenance_id)
+
+    def resume_maintenance(self, maintenance_id: int) -> dict[str, Any]:
+        """Resume a maintenance window."""
+        with self._connect() as api:
+            return api.resume_maintenance(maintenance_id)

@@ -1,0 +1,4 @@
+site_name: clr-uptime-kuma-mcp
+nav:
+  - Overview: index.md
+  - TODO: todo.md
