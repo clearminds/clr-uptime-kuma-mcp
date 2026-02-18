@@ -12,7 +12,25 @@ uvx uptime-kuma-mcp-server
 
 ## Configuration
 
-Configuration via environment variables. See `--help` for all options:
+**Preferred:** Configuration file at `~/.config/uptime-kuma/credentials.json` (chmod 600):
+
+```json
+{
+  "url": "https://uptime.example.com",
+  "username": "admin",
+  "password": "your-password"
+}
+```
+
+**Alternative:** Environment variables are also supported:
+
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `UPTIME_KUMA_URL` | Uptime Kuma URL | `https://uptime.example.com` |
+| `UPTIME_KUMA_USERNAME` | Username | `admin` |
+| `UPTIME_KUMA_PASSWORD` | Password | `your-password` |
+
+See `--help` for additional options:
 
 ```bash
 uptime-kuma-mcp-server --help
