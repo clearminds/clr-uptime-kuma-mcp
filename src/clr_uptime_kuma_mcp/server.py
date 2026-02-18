@@ -7,8 +7,8 @@ from typing import Any
 
 from fastmcp import FastMCP
 
-from uptime_kuma_mcp_server.config import Settings, configure_logging
-from uptime_kuma_mcp_server.kuma_client import KumaClient
+from clr_uptime_kuma_mcp.config import Settings, configure_logging
+from clr_uptime_kuma_mcp.kuma_client import KumaClient
 
 
 def parse_cli_args() -> dict[str, Any]:

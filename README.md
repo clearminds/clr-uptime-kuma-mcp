@@ -1,13 +1,13 @@
-# uptime-kuma-mcp-server
+# clr-uptime-kuma-mcp
 
 Uptime Kuma monitoring
 
 ## Install
 
 ```bash
-pip install uptime-kuma-mcp-server
+pip install clr-uptime-kuma-mcp
 # or
-uvx uptime-kuma-mcp-server
+uvx clr-uptime-kuma-mcp
 ```
 
 ## Configuration
@@ -33,16 +33,16 @@ uvx uptime-kuma-mcp-server
 See `--help` for additional options:
 
 ```bash
-uptime-kuma-mcp-server --help
+clr-uptime-kuma-mcp --help
 ```
 
 ## Development
 
 ```bash
-git clone https://github.com/clearminds/uptime-kuma-mcp-server.git
-cd uptime-kuma-mcp-server
+git clone https://github.com/clearminds/clr-uptime-kuma-mcp.git
+cd clr-uptime-kuma-mcp
 uv sync
-uv run uptime-kuma-mcp-server
+uv run clr-uptime-kuma-mcp
 ```
 
 ## License

@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "uptime-kuma-mcp-server"
+name = "clr-uptime-kuma-mcp"
 version = "1.0.0"
 description = "A read-only MCP server for Uptime Kuma"
 requires-python = ">=3.11"
@@ -22,7 +22,7 @@ dependencies = [
 ]
 
 [project.urls]
-Repository = "https://github.com/clearminds/uptime-kuma-mcp-server"
+Repository = "https://github.com/clearminds/clr-uptime-kuma-mcp"
 
 [project.scripts]
-uptime-kuma-mcp-server = "uptime_kuma_mcp_server.server:main"
+clr-uptime-kuma-mcp = "clr_uptime_kuma_mcp.server:main"
