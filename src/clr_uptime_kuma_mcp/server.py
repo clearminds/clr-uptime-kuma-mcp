@@ -17,7 +17,11 @@ from clr_uptime_kuma_mcp.kuma_client import (
 
 
 def parse_cli_args() -> dict[str, Any]:
-    """Parse CLI arguments for configuration overrides."""
+    """Parse CLI arguments for configuration overrides.
+
+    Returns:
+        A dict of non-None CLI argument values keyed by Settings field name.
+    """
     parser = argparse.ArgumentParser(description="Uptime Kuma MCP Server")
 
     parser.add_argument("--uptime-kuma-url", type=str, help="Uptime Kuma URL")
@@ -58,7 +62,14 @@ write_client: KumaWriteClient | None = None
 
 
 def _require_write_client() -> KumaWriteClient:
-    """Return the write client or raise if not configured."""
+    """Return the write client or raise if not configured.
+
+    Returns:
+        The initialized KumaWriteClient instance.
+
+    Raises:
+        ValueError: If write credentials were not configured at startup.
+    """
     if write_client is None:
         raise ValueError(
             "Write operations require username/password. "
@@ -78,6 +89,10 @@ def kuma_status() -> dict[str, Any]:
 
     Returns total monitor count and breakdown by status (up, down, pending,
     maintenance), plus a list of any monitors that are currently down.
+
+    Returns:
+        A dict with total, up, down, pending, maintenance counts and a
+        down_monitors list.
     """
     monitors = client.get_monitors()
 
@@ -111,8 +126,9 @@ def kuma_status() -> dict[str, Any]:
 def kuma_list_monitors() -> list[dict[str, Any]]:
     """List all Uptime Kuma monitors with status and response times.
 
-    Returns monitors sorted by name, each with id, name, type, status,
-    response time (ms), URL/hostname, and certificate info if available.
+    Returns:
+        Monitors sorted by name, each with id, name, type, status,
+        response time (ms), URL/hostname, and certificate info if available.
     """
     monitors = client.get_monitors()
     monitors.sort(key=lambda m: m.get("name", "").lower())
@@ -126,7 +142,11 @@ def kuma_get_monitor(monitor_id: int) -> dict[str, Any]:
     Args:
         monitor_id: Numeric monitor ID.
 
-    Returns all available fields for the monitor.
+    Returns:
+        A dict with all available fields for the monitor.
+
+    Raises:
+        ValueError: If the monitor ID is not found.
     """
     monitor = client.get_monitor(monitor_id)
     if not monitor:
@@ -143,7 +163,8 @@ def kuma_get_monitor(monitor_id: int) -> dict[str, Any]:
 def kuma_down_monitors() -> list[dict[str, Any]]:
     """List only monitors that are currently down.
 
-    Returns an empty list if everything is up.
+    Returns:
+        A list of monitor dicts with status 0, or an empty list if all are up.
     """
     monitors = client.get_monitors()
     return [m for m in monitors if m.get("status") == 0]
@@ -158,9 +179,10 @@ def kuma_down_monitors() -> list[dict[str, Any]]:
 def kuma_cert_expiry() -> list[dict[str, Any]]:
     """Show SSL certificate expiry for all HTTPS monitors.
 
-    Returns monitors that have certificate data, sorted by days remaining
-    (most urgent first). Each entry includes cert_days_remaining, cert_valid,
-    and a severity level (CRITICAL <= 7 days, WARNING <= 30 days, OK otherwise).
+    Returns:
+        Monitors with certificate data, sorted by days remaining (most urgent
+        first). Each entry includes cert_days_remaining, cert_valid, and a
+        severity level (CRITICAL <= 7 days, WARNING <= 30 days, OK otherwise).
     """
     monitors = client.get_monitors()
     with_certs = [m for m in monitors if "cert_days_remaining" in m]
@@ -204,6 +226,12 @@ def kuma_add_monitor(
         port: Port number (for port type).
         interval: Check interval in seconds (default 60).
         keyword: Keyword to search for (for keyword type).
+
+    Returns:
+        API response dict with the created monitor details.
+
+    Raises:
+        ValueError: If the monitor type is unknown or write client is unavailable.
     """
     wc = _require_write_client()
     monitor_type = MONITOR_TYPE_MAP.get(type.lower())
@@ -243,6 +271,12 @@ def kuma_edit_monitor(
         port: New port.
         interval: New check interval in seconds.
         keyword: New keyword.
+
+    Returns:
+        API response dict with the updated monitor details.
+
+    Raises:
+        ValueError: If no fields are provided or write client is unavailable.
     """
     wc = _require_write_client()
     kwargs: dict[str, Any] = {}
@@ -271,6 +305,9 @@ def kuma_delete_monitor(monitor_id: int) -> dict[str, Any]:
 
     Args:
         monitor_id: ID of the monitor to delete.
+
+    Returns:
+        API response dict confirming deletion.
     """
     wc = _require_write_client()
     return wc.delete_monitor(monitor_id)
@@ -287,6 +324,9 @@ def kuma_pause_monitor(monitor_id: int) -> dict[str, Any]:
 
     Args:
         monitor_id: ID of the monitor to pause.
+
+    Returns:
+        API response dict confirming the pause.
     """
     wc = _require_write_client()
     return wc.pause_monitor(monitor_id)
@@ -298,6 +338,9 @@ def kuma_resume_monitor(monitor_id: int) -> dict[str, Any]:
 
     Args:
         monitor_id: ID of the monitor to resume.
+
+    Returns:
+        API response dict confirming the resume.
     """
     wc = _require_write_client()
     return wc.resume_monitor(monitor_id)
@@ -310,7 +353,11 @@ def kuma_resume_monitor(monitor_id: int) -> dict[str, Any]:
 
 @mcp.tool
 def kuma_list_maintenances() -> list[dict[str, Any]]:
-    """List all maintenance windows."""
+    """List all maintenance windows.
+
+    Returns:
+        A list of maintenance window dicts.
+    """
     wc = _require_write_client()
     return wc.get_maintenances()
 
@@ -335,6 +382,12 @@ def kuma_add_maintenance(
         duration_minutes: Duration in minutes for cron strategy (default 60).
         cron: Cron expression for 'cron' strategy.
         timezone: Timezone (e.g. 'Europe/Stockholm').
+
+    Returns:
+        API response dict with the created maintenance details.
+
+    Raises:
+        ValueError: If the strategy is unknown or write client is unavailable.
     """
     wc = _require_write_client()
     maint_strategy = MAINTENANCE_STRATEGY_MAP.get(strategy.lower())
@@ -366,6 +419,9 @@ def kuma_delete_maintenance(maintenance_id: int) -> dict[str, Any]:
 
     Args:
         maintenance_id: ID of the maintenance window to delete.
+
+    Returns:
+        API response dict confirming deletion.
     """
     wc = _require_write_client()
     return wc.delete_maintenance(maintenance_id)
@@ -377,6 +433,9 @@ def kuma_pause_maintenance(maintenance_id: int) -> dict[str, Any]:
 
     Args:
         maintenance_id: ID of the maintenance window to pause.
+
+    Returns:
+        API response dict confirming the pause.
     """
     wc = _require_write_client()
     return wc.pause_maintenance(maintenance_id)
@@ -388,6 +447,9 @@ def kuma_resume_maintenance(maintenance_id: int) -> dict[str, Any]:
 
     Args:
         maintenance_id: ID of the maintenance window to resume.
+
+    Returns:
+        API response dict confirming the resume.
     """
     wc = _require_write_client()
     return wc.resume_maintenance(maintenance_id)

@@ -20,6 +20,16 @@ class Settings(BaseSettings):
     Priority order for credentials:
     1. ~/.config/uptime-kuma/credentials.json
     2. Environment variables (UPTIME_KUMA_URL, UPTIME_KUMA_TOKEN) - override
+
+    Attributes:
+        uptime_kuma_url: Base URL of the Uptime Kuma instance.
+        uptime_kuma_token: API token for Prometheus metrics authentication.
+        uptime_kuma_username: Username for Socket.IO write operations.
+        uptime_kuma_password: Password for Socket.IO write operations.
+        transport: MCP transport protocol to use.
+        host: Hostname to bind when using HTTP transport.
+        port: Port to bind when using HTTP transport.
+        log_level: Logging verbosity level.
     """
 
     uptime_kuma_url: str = ""
@@ -43,6 +53,17 @@ class Settings(BaseSettings):
     @field_validator("uptime_kuma_url")
     @classmethod
     def validate_url(cls, v: str) -> str:
+        """Validate and normalize the Uptime Kuma URL.
+
+        Args:
+            v: Raw URL string from configuration.
+
+        Returns:
+            The URL with trailing slashes stripped.
+
+        Raises:
+            ValueError: If the URL does not start with http:// or https://.
+        """
         if v and not v.startswith(("http://", "https://")):
             raise ValueError("UPTIME_KUMA_URL must start with http:// or https://")
         return v.rstrip("/") if v else v
@@ -102,6 +123,11 @@ class Settings(BaseSettings):
 def configure_logging(
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
 ) -> None:
+    """Configure application-wide logging with a console handler on stderr.
+
+    Args:
+        log_level: Root logger verbosity level.
+    """
     config: dict[str, Any] = {
         "version": 1,
         "disable_existing_loggers": False,
