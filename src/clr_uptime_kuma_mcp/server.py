@@ -16,11 +16,11 @@ from clr_uptime_kuma_mcp.kuma_client import (
 )
 
 
-def parse_cli_args() -> dict[str, Any]:
+def parse_cli_args() -> tuple[dict[str, Any], bool | None]:
     """Parse CLI arguments for configuration overrides.
 
     Returns:
-        A dict of non-None CLI argument values keyed by Settings field name.
+        A tuple of (overlay dict, read_only flag).
     """
     parser = argparse.ArgumentParser(description="Uptime Kuma MCP Server")
 
@@ -36,6 +36,12 @@ def parse_cli_args() -> dict[str, Any]:
         type=str,
         choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
         help="Log level",
+    )
+    parser.add_argument(
+        "--read-only",
+        action="store_true",
+        default=None,
+        help="Run in read-only mode (hide write tools)",
     )
 
     args = parser.parse_args()
@@ -53,12 +59,24 @@ def parse_cli_args() -> dict[str, Any]:
         if val is not None:
             overlay[key] = val
 
-    return overlay
+    return overlay, args.read_only
 
 
 mcp = FastMCP("Uptime Kuma")
 client: KumaClient | None = None
 write_client: KumaWriteClient | None = None
+
+WRITE_TOOLS = [
+    "kuma_add_monitor",
+    "kuma_edit_monitor",
+    "kuma_delete_monitor",
+    "kuma_pause_monitor",
+    "kuma_resume_monitor",
+    "kuma_add_maintenance",
+    "kuma_delete_maintenance",
+    "kuma_pause_maintenance",
+    "kuma_resume_maintenance",
+]
 
 
 def _require_write_client() -> KumaWriteClient:
@@ -464,7 +482,7 @@ def main() -> None:
     """Main entry point for the Uptime Kuma MCP server."""
     global client, write_client
 
-    cli_overlay = parse_cli_args()
+    cli_overlay, cli_read_only = parse_cli_args()
 
     try:
         settings = Settings(**cli_overlay)
@@ -499,6 +517,12 @@ def main() -> None:
         logger.info("Write client initialized (Socket.IO)")
     else:
         logger.info("Write client not initialized (no username/password)")
+
+    read_only = cli_read_only if cli_read_only is not None else settings.kuma_read_only
+    if read_only and WRITE_TOOLS:
+        for name in WRITE_TOOLS:
+            mcp.remove_tool(name)
+        logger.info("Read-only mode: %d write tools removed", len(WRITE_TOOLS))
 
     try:
         if settings.transport == "stdio":

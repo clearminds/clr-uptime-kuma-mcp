@@ -36,6 +36,7 @@ class Settings(BaseSettings):
     uptime_kuma_token: str = ""
     uptime_kuma_username: str = ""
     uptime_kuma_password: str = ""
+    kuma_read_only: bool = False
 
     transport: Literal["stdio", "http"] = "stdio"
     host: str = "127.0.0.1"
