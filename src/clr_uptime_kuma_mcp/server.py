@@ -9,6 +9,7 @@ from fastmcp import FastMCP
 
 from clr_uptime_kuma_mcp.config import Settings, configure_logging
 from clr_uptime_kuma_mcp.kuma_client import (
+from clr_uptime_kuma_mcp.middleware import ToolValidationMiddleware
     MAINTENANCE_STRATEGY_MAP,
     MONITOR_TYPE_MAP,
     KumaClient,
@@ -63,6 +64,7 @@ def parse_cli_args() -> tuple[dict[str, Any], bool | None]:
 
 
 mcp = FastMCP("Uptime Kuma")
+mcp.add_middleware(ToolValidationMiddleware())
 client: KumaClient | None = None
 write_client: KumaWriteClient | None = None
 
