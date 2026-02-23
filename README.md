@@ -46,6 +46,14 @@ uvx clr-uptime-kuma-mcp
 | `UPTIME_KUMA_USERNAME` | Username for write operations | `admin` |
 | `UPTIME_KUMA_PASSWORD` | Password for write operations | `secretpass` |
 
+Optional:
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `KUMA_READ_ONLY` | Run in read-only mode | `false` |
+| `TRANSPORT` | Transport protocol (`stdio` or `http`) | `stdio` |
+| `LOG_LEVEL` | Log level | `INFO` |
+
 **Priority:** Config file takes priority over environment variables.
 
 ### Claude Desktop

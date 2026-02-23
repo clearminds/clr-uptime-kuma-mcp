@@ -8,8 +8,8 @@ from typing import Any
 from fastmcp import FastMCP
 
 from clr_uptime_kuma_mcp.config import Settings, configure_logging
-from clr_uptime_kuma_mcp.kuma_client import (
 from clr_uptime_kuma_mcp.middleware import ToolValidationMiddleware
+from clr_uptime_kuma_mcp.kuma_client import (
     MAINTENANCE_STRATEGY_MAP,
     MONITOR_TYPE_MAP,
     KumaClient,

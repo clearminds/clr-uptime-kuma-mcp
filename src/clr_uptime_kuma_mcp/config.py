@@ -38,6 +38,13 @@ class Settings(BaseSettings):
     uptime_kuma_password: str = ""
     kuma_read_only: bool = False
 
+    @field_validator("kuma_read_only", mode="before")
+    @classmethod
+    def _empty_str_to_false(cls, v: Any) -> Any:
+        if v == "":
+            return False
+        return v
+
     transport: Literal["stdio", "http"] = "stdio"
     host: str = "127.0.0.1"
     port: int = 8000
