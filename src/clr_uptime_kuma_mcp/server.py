@@ -480,6 +480,32 @@ def kuma_resume_maintenance(maintenance_id: int) -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 
 
+def init_composite() -> FastMCP:
+    """Initialize for composite mounting. Returns the FastMCP instance."""
+    global client, write_client
+
+    settings = Settings()
+    creds = settings.load_credentials()
+
+    client = KumaClient(
+        url=creds.get("url", ""),
+        token=creds.get("token", ""),
+    )
+
+    if creds.get("username") and creds.get("password"):
+        write_client = KumaWriteClient(
+            url=creds["url"],
+            username=creds["username"],
+            password=creds["password"],
+        )
+
+    if settings.kuma_read_only and WRITE_TOOLS:
+        for name in WRITE_TOOLS:
+            mcp.remove_tool(name)
+
+    return mcp
+
+
 def main() -> None:
     """Main entry point for the Uptime Kuma MCP server."""
     global client, write_client
