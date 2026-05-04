@@ -69,22 +69,15 @@ mcp.add_middleware(ToolValidationMiddleware())
 # Imported here (not at the top) on purpose: annotations.py needs ``mcp`` from
 # this module, so importing it before the ``mcp = FastMCP(...)`` line above
 # would be a circular import. Do not move.
-from clr_uptime_kuma_mcp.annotations import read_tool, write_tool, destructive_tool  # noqa: E402
+from clr_uptime_kuma_mcp.annotations import (  # noqa: E402
+    destructive_tool,
+    read_tool,
+    remove_non_read_tools,
+    write_tool,
+)
 
 client: KumaClient | None = None
 write_client: KumaWriteClient | None = None
-
-WRITE_TOOLS = [
-    "kuma_add_monitor",
-    "kuma_edit_monitor",
-    "kuma_delete_monitor",
-    "kuma_pause_monitor",
-    "kuma_resume_monitor",
-    "kuma_add_maintenance",
-    "kuma_delete_maintenance",
-    "kuma_pause_maintenance",
-    "kuma_resume_maintenance",
-]
 
 
 def _require_write_client() -> KumaWriteClient:
@@ -527,10 +520,9 @@ def main() -> None:
         logger.info("Write client not initialized (no username/password)")
 
     read_only = cli_read_only if cli_read_only is not None else settings.kuma_read_only
-    if read_only and WRITE_TOOLS:
-        for name in WRITE_TOOLS:
-            mcp.remove_tool(name)
-        logger.info("Read-only mode: %d write tools removed", len(WRITE_TOOLS))
+    if read_only:
+        removed = remove_non_read_tools(mcp)
+        logger.info("Read-only mode: %d non-read tools removed", removed)
 
     try:
         if settings.transport == "stdio":
