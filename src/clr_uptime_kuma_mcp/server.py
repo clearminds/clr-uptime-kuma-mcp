@@ -65,6 +65,12 @@ def parse_cli_args() -> tuple[dict[str, Any], bool | None]:
 
 mcp = FastMCP("Uptime Kuma")
 mcp.add_middleware(ToolValidationMiddleware())
+
+# Imported here (not at the top) on purpose: annotations.py needs ``mcp`` from
+# this module, so importing it before the ``mcp = FastMCP(...)`` line above
+# would be a circular import. Do not move.
+from clr_uptime_kuma_mcp.annotations import read_tool, write_tool, destructive_tool  # noqa: E402
+
 client: KumaClient | None = None
 write_client: KumaWriteClient | None = None
 
@@ -103,7 +109,7 @@ def _require_write_client() -> KumaWriteClient:
 # ---------------------------------------------------------------------------
 
 
-@mcp.tool
+@read_tool
 def kuma_status() -> dict[str, Any]:
     """Get overall monitoring status summary.
 
@@ -142,7 +148,7 @@ def kuma_status() -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 
 
-@mcp.tool
+@read_tool
 def kuma_list_monitors() -> list[dict[str, Any]]:
     """List all Uptime Kuma monitors with status and response times.
 
@@ -155,7 +161,7 @@ def kuma_list_monitors() -> list[dict[str, Any]]:
     return monitors
 
 
-@mcp.tool
+@read_tool
 def kuma_get_monitor(monitor_id: int) -> dict[str, Any]:
     """Get detailed information for a specific monitor.
 
@@ -179,7 +185,7 @@ def kuma_get_monitor(monitor_id: int) -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 
 
-@mcp.tool
+@read_tool
 def kuma_down_monitors() -> list[dict[str, Any]]:
     """List only monitors that are currently down.
 
@@ -195,7 +201,7 @@ def kuma_down_monitors() -> list[dict[str, Any]]:
 # ---------------------------------------------------------------------------
 
 
-@mcp.tool
+@read_tool
 def kuma_cert_expiry() -> list[dict[str, Any]]:
     """Show SSL certificate expiry for all HTTPS monitors.
 
@@ -226,7 +232,7 @@ def kuma_cert_expiry() -> list[dict[str, Any]]:
 # ---------------------------------------------------------------------------
 
 
-@mcp.tool
+@write_tool
 def kuma_add_monitor(
     name: str,
     type: str = "http",
@@ -271,7 +277,7 @@ def kuma_add_monitor(
     return wc.add_monitor(**kwargs)
 
 
-@mcp.tool
+@write_tool
 def kuma_edit_monitor(
     monitor_id: int,
     name: str = "",
@@ -319,7 +325,7 @@ def kuma_edit_monitor(
     return wc.edit_monitor(monitor_id, **kwargs)
 
 
-@mcp.tool
+@destructive_tool
 def kuma_delete_monitor(monitor_id: int) -> dict[str, Any]:
     """Delete a monitor.
 
@@ -338,7 +344,7 @@ def kuma_delete_monitor(monitor_id: int) -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 
 
-@mcp.tool
+@write_tool
 def kuma_pause_monitor(monitor_id: int) -> dict[str, Any]:
     """Pause a monitor (stop checking).
 
@@ -352,7 +358,7 @@ def kuma_pause_monitor(monitor_id: int) -> dict[str, Any]:
     return wc.pause_monitor(monitor_id)
 
 
-@mcp.tool
+@write_tool
 def kuma_resume_monitor(monitor_id: int) -> dict[str, Any]:
     """Resume a paused monitor.
 
@@ -371,7 +377,7 @@ def kuma_resume_monitor(monitor_id: int) -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 
 
-@mcp.tool
+@read_tool
 def kuma_list_maintenances() -> list[dict[str, Any]]:
     """List all maintenance windows.
 
@@ -382,7 +388,7 @@ def kuma_list_maintenances() -> list[dict[str, Any]]:
     return wc.get_maintenances()
 
 
-@mcp.tool
+@write_tool
 def kuma_add_maintenance(
     title: str,
     strategy: str = "manual",
@@ -433,7 +439,7 @@ def kuma_add_maintenance(
     return wc.add_maintenance(**kwargs)
 
 
-@mcp.tool
+@destructive_tool
 def kuma_delete_maintenance(maintenance_id: int) -> dict[str, Any]:
     """Delete a maintenance window.
 
@@ -447,7 +453,7 @@ def kuma_delete_maintenance(maintenance_id: int) -> dict[str, Any]:
     return wc.delete_maintenance(maintenance_id)
 
 
-@mcp.tool
+@write_tool
 def kuma_pause_maintenance(maintenance_id: int) -> dict[str, Any]:
     """Pause a maintenance window.
 
@@ -461,7 +467,7 @@ def kuma_pause_maintenance(maintenance_id: int) -> dict[str, Any]:
     return wc.pause_maintenance(maintenance_id)
 
 
-@mcp.tool
+@write_tool
 def kuma_resume_maintenance(maintenance_id: int) -> dict[str, Any]:
     """Resume a paused maintenance window.
 
