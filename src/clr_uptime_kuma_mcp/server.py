@@ -103,7 +103,7 @@ def _require_write_client() -> KumaWriteClient:
 
 
 @read_tool
-def kuma_status() -> dict[str, Any]:
+def status() -> dict[str, Any]:
     """Get overall monitoring status summary.
 
     Returns total monitor count and breakdown by status (up, down, pending,
@@ -142,7 +142,7 @@ def kuma_status() -> dict[str, Any]:
 
 
 @read_tool
-def kuma_list_monitors() -> list[dict[str, Any]]:
+def list_monitors() -> list[dict[str, Any]]:
     """List all Uptime Kuma monitors with status and response times.
 
     Returns:
@@ -155,7 +155,7 @@ def kuma_list_monitors() -> list[dict[str, Any]]:
 
 
 @read_tool
-def kuma_get_monitor(monitor_id: int) -> dict[str, Any]:
+def get_monitor(monitor_id: int) -> dict[str, Any]:
     """Get detailed information for a specific monitor.
 
     Args:
@@ -179,7 +179,7 @@ def kuma_get_monitor(monitor_id: int) -> dict[str, Any]:
 
 
 @read_tool
-def kuma_down_monitors() -> list[dict[str, Any]]:
+def down_monitors() -> list[dict[str, Any]]:
     """List only monitors that are currently down.
 
     Returns:
@@ -195,7 +195,7 @@ def kuma_down_monitors() -> list[dict[str, Any]]:
 
 
 @read_tool
-def kuma_cert_expiry() -> list[dict[str, Any]]:
+def cert_expiry() -> list[dict[str, Any]]:
     """Show SSL certificate expiry for all HTTPS monitors.
 
     Returns:
@@ -226,7 +226,7 @@ def kuma_cert_expiry() -> list[dict[str, Any]]:
 
 
 @write_tool
-def kuma_add_monitor(
+def add_monitor(
     name: str,
     type: str = "http",
     url: str = "",
@@ -271,7 +271,7 @@ def kuma_add_monitor(
 
 
 @write_tool
-def kuma_edit_monitor(
+def edit_monitor(
     monitor_id: int,
     name: str = "",
     url: str = "",
@@ -319,7 +319,7 @@ def kuma_edit_monitor(
 
 
 @destructive_tool
-def kuma_delete_monitor(monitor_id: int) -> dict[str, Any]:
+def delete_monitor(monitor_id: int) -> dict[str, Any]:
     """Delete a monitor.
 
     Args:
@@ -338,7 +338,7 @@ def kuma_delete_monitor(monitor_id: int) -> dict[str, Any]:
 
 
 @write_tool
-def kuma_pause_monitor(monitor_id: int) -> dict[str, Any]:
+def pause_monitor(monitor_id: int) -> dict[str, Any]:
     """Pause a monitor (stop checking).
 
     Args:
@@ -352,7 +352,7 @@ def kuma_pause_monitor(monitor_id: int) -> dict[str, Any]:
 
 
 @write_tool
-def kuma_resume_monitor(monitor_id: int) -> dict[str, Any]:
+def resume_monitor(monitor_id: int) -> dict[str, Any]:
     """Resume a paused monitor.
 
     Args:
@@ -371,7 +371,7 @@ def kuma_resume_monitor(monitor_id: int) -> dict[str, Any]:
 
 
 @read_tool
-def kuma_list_maintenances() -> list[dict[str, Any]]:
+def list_maintenances() -> list[dict[str, Any]]:
     """List all maintenance windows.
 
     Returns:
@@ -382,7 +382,7 @@ def kuma_list_maintenances() -> list[dict[str, Any]]:
 
 
 @write_tool
-def kuma_add_maintenance(
+def add_maintenance(
     title: str,
     strategy: str = "manual",
     description: str = "",
@@ -433,7 +433,7 @@ def kuma_add_maintenance(
 
 
 @destructive_tool
-def kuma_delete_maintenance(maintenance_id: int) -> dict[str, Any]:
+def delete_maintenance(maintenance_id: int) -> dict[str, Any]:
     """Delete a maintenance window.
 
     Args:
@@ -447,7 +447,7 @@ def kuma_delete_maintenance(maintenance_id: int) -> dict[str, Any]:
 
 
 @write_tool
-def kuma_pause_maintenance(maintenance_id: int) -> dict[str, Any]:
+def pause_maintenance(maintenance_id: int) -> dict[str, Any]:
     """Pause a maintenance window.
 
     Args:
@@ -461,7 +461,7 @@ def kuma_pause_maintenance(maintenance_id: int) -> dict[str, Any]:
 
 
 @write_tool
-def kuma_resume_maintenance(maintenance_id: int) -> dict[str, Any]:
+def resume_maintenance(maintenance_id: int) -> dict[str, Any]:
     """Resume a paused maintenance window.
 
     Args:

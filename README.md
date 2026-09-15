@@ -123,26 +123,26 @@ clr-uptime-kuma-mcp --transport http --host 0.0.0.0 --port 8000
 
 | Tool | Description | Parameters |
 |------|-------------|------------|
-| `kuma_status` | Overall status summary (up/down/pending/maintenance counts + down list) | — |
-| `kuma_list_monitors` | All monitors sorted by name with status, response times, cert info | — |
-| `kuma_get_monitor` | Full details for a specific monitor | `monitor_id` |
-| `kuma_down_monitors` | Only monitors currently down | — |
-| `kuma_cert_expiry` | SSL certificate expiry sorted by urgency | — |
+| `status` | Overall status summary (up/down/pending/maintenance counts + down list) | — |
+| `list_monitors` | All monitors sorted by name with status, response times, cert info | — |
+| `get_monitor` | Full details for a specific monitor | `monitor_id` |
+| `down_monitors` | Only monitors currently down | — |
+| `cert_expiry` | SSL certificate expiry sorted by urgency | — |
 
 ### Write Tools (require username/password)
 
 | Tool | Description | Parameters |
 |------|-------------|------------|
-| `kuma_add_monitor` | Create a new monitor | `name`, `type`, `url` or `hostname`, `port`, `interval`, `keyword` |
-| `kuma_edit_monitor` | Edit monitor settings (only provided fields are updated) | `monitor_id`, optional fields |
-| `kuma_delete_monitor` | Delete a monitor | `monitor_id` |
-| `kuma_pause_monitor` | Pause a monitor (stop checking) | `monitor_id` |
-| `kuma_resume_monitor` | Resume a paused monitor | `monitor_id` |
-| `kuma_list_maintenances` | List all maintenance windows | — |
-| `kuma_add_maintenance` | Create a maintenance window | `title`, `strategy`, `description`, `date_range`, `cron`, `timezone` |
-| `kuma_delete_maintenance` | Delete a maintenance window | `maintenance_id` |
-| `kuma_pause_maintenance` | Pause a maintenance window | `maintenance_id` |
-| `kuma_resume_maintenance` | Resume a maintenance window | `maintenance_id` |
+| `add_monitor` | Create a new monitor | `name`, `type`, `url` or `hostname`, `port`, `interval`, `keyword` |
+| `edit_monitor` | Edit monitor settings (only provided fields are updated) | `monitor_id`, optional fields |
+| `delete_monitor` | Delete a monitor | `monitor_id` |
+| `pause_monitor` | Pause a monitor (stop checking) | `monitor_id` |
+| `resume_monitor` | Resume a paused monitor | `monitor_id` |
+| `list_maintenances` | List all maintenance windows | — |
+| `add_maintenance` | Create a maintenance window | `title`, `strategy`, `description`, `date_range`, `cron`, `timezone` |
+| `delete_maintenance` | Delete a maintenance window | `maintenance_id` |
+| `pause_maintenance` | Pause a maintenance window | `maintenance_id` |
+| `resume_maintenance` | Resume a maintenance window | `maintenance_id` |
 
 ### Monitor Types
 
